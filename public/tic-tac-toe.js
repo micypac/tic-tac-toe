@@ -1,72 +1,41 @@
+import Grid from "./grid.js";
+
 const markCell = (event) => {
   let square = event.target;
-  // get content of cell if its already populated
-  let divContent = square.textContent;
+  let idx = square.dataset.boxnum;
+  // if grid cell/index has already been marked, don't remark it
+  if (grid.board[idx] !== "") return;
 
-  // only let it mark if its not populated
-  if (divContent === "") {
-    event.target.textContent = playerTurn;
-    // grab the data attribute from cell and use as index for the board array
-    let idx = square.dataset.boxnum;
-    board[idx] = playerTurn;
+  // if grid cell/index is empty, mark it and check game progress
+  grid.board[idx] = playerTurn;
+  square.textContent = playerTurn;
 
-    let gameDecision = checkWin();
+  gameOver = Grid.checkWin(grid.board);
 
-    if (gameDecision) {
-      removeGridListeners();
-      displayGameDecison(gameDecision);
-      return;
-    }
-
+  if (!gameOver) {
     // turn will be alternate to each if they mark a cell successfully
     playerTurn = playerTurn === PLAYER_TURN ? COMPUTER_TURN : PLAYER_TURN;
+  } else {
+    // remove click listeners on board cells
+    removeGridListeners();
+    displayGameDecison(gameOver);
   }
 };
 
 const displayGameDecison = (decision) => {
-  // const h2Element = document.getElementsByTagName("h2");
+  const h2Element = document.getElementById("winner-heading");
+
   if (decision === "T") {
     h2Element.textContent = "Winner: None!";
   } else {
     h2Element.textContent = `Winner: ${decision}`;
   }
   h2Element.style.visibility = "visible";
-};
 
-const checkWin = () => {
-  let playerWon = undefined;
-  let roundWon = false;
-
-  const winningConditions = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-
-  for (let i = 0; i < winningConditions.length; i++) {
-    const winCombo = winningConditions[i];
-    let a = board[winCombo[0]];
-    let b = board[winCombo[1]];
-    let c = board[winCombo[2]];
-
-    if (a === "" || b === "" || c === "") continue;
-    if (a === b && b === c) {
-      roundWon = true;
-      playerWon = a;
-      break;
-    }
-  }
-
-  if (roundWon) return playerWon;
-
-  let roundDraw = !board.includes("");
-  if (roundDraw) return "T";
-  return false;
+  const newGameButton = document.getElementById("new-game");
+  newGameButton.style.opacity = null;
+  newGameButton.style.cursor = "pointer";
+  newGameButton.addEventListener("click", cleanup);
 };
 
 const removeGridListeners = () => {
@@ -76,20 +45,40 @@ const removeGridListeners = () => {
   });
 };
 
+const cleanup = () => {
+  const section = document.getElementById("main-section");
+  const squares = document.querySelectorAll(".box");
+
+  squares.forEach((child) => section.removeChild(child));
+
+  initializeGame();
+};
+
+const initializeGame = () => {
+  grid = new Grid();
+  const section = document.getElementById("main-section");
+
+  for (let i = 0; i < grid.board.length; i++) {
+    const square = document.createElement("div");
+    square.classList.add("box");
+    square.setAttribute("data-boxnum", i);
+    section.appendChild(square);
+    square.addEventListener("click", markCell);
+  }
+
+  const h2Element = document.getElementById("winner-heading");
+  h2Element.style.visibility = "hidden";
+
+  const newGameButton = document.getElementById("new-game");
+  newGameButton.style.opacity = 0.6;
+  newGameButton.style.cursor = "not-allowed";
+  newGameButton.removeEventListener("click", cleanup);
+};
+
+let grid;
 const PLAYER_TURN = "X";
 const COMPUTER_TURN = "O";
 let playerTurn = PLAYER_TURN;
-const board = Array(9).fill("");
+let gameOver = false;
 
-const section = document.getElementById("main-section");
-
-for (let i = 0; i < board.length; i++) {
-  const square = document.createElement("div");
-  square.classList.add("box");
-  square.setAttribute("data-boxnum", i);
-  section.appendChild(square);
-  square.addEventListener("click", markCell);
-}
-
-const h2Element = document.getElementById("winner-heading");
-h2Element.style.visibility = "hidden";
+initializeGame();
