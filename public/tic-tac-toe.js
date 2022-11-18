@@ -36,6 +36,11 @@ const displayGameDecison = (decision) => {
   newGameButton.style.opacity = null;
   newGameButton.style.cursor = "pointer";
   newGameButton.addEventListener("click", cleanup);
+
+  const giveUpButton = document.getElementById("give-up");
+  giveUpButton.style.opacity = 0.6;
+  giveUpButton.style.cursor = "not-allowed";
+  giveUpButton.removeEventListener("click", surrenderGame);
 };
 
 const removeGridListeners = () => {
@@ -52,6 +57,12 @@ const cleanup = () => {
   squares.forEach((child) => section.removeChild(child));
 
   initializeGame();
+};
+
+const surrenderGame = () => {
+  playerTurn = playerTurn === PLAYER_TURN ? COMPUTER_TURN : PLAYER_TURN;
+  removeGridListeners();
+  displayGameDecison(playerTurn);
 };
 
 const initializeGame = () => {
@@ -73,6 +84,11 @@ const initializeGame = () => {
   newGameButton.style.opacity = 0.6;
   newGameButton.style.cursor = "not-allowed";
   newGameButton.removeEventListener("click", cleanup);
+
+  const giveUpButton = document.getElementById("give-up");
+  giveUpButton.style.opacity = null;
+  giveUpButton.style.cursor = "pointer";
+  giveUpButton.addEventListener("click", surrenderGame);
 };
 
 let grid;
